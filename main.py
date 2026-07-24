@@ -45,7 +45,6 @@ def load_level(path):
     with open(path, "r") as f:
         return json.load(f)
 
-
 def get_tiles_by_value(level_data, value):
     tile_size = level_data["tile_size"]
     grid = level_data["grid"]
@@ -60,6 +59,9 @@ def get_tiles_by_value(level_data, value):
 
 def build_enemies(level_data):
     entries = level_data.get("enemies", [])
+
+def build_enemies(level_data):
+    entries = level_data.get("enemies", [])
     enemies = []
     for e in entries:
         rect = pygame.Rect(e["x"], e["y"] + WORLD_Y_OFFSET, 26, 26)
@@ -67,7 +69,7 @@ def build_enemies(level_data):
             "rect": rect,
             "start_x": e["x"],
             "patrol_range": e.get("patrol_range", 100),
-            "speed": e.get("speed", 1,5),
+            "speed": e.get("speed", 1.5),
             "direction": 1,
         })
     return enemies
@@ -76,8 +78,8 @@ def update_enemies(enemies):
     for enemy in enemies:
         enemy["rect"].x += enemy["speed"] * enemy["direction"]
         if enemy["rect"].x > enemy["start_x"] + enemy["patrol_range"]:
-            enemy["directiom"] = -1
-        elif enemy["rect"].x > enemy["star_x"] - enemy["patrol_range"]:
+            enemy["direction"] = -1
+        elif enemy["rect"].x < enemy["start_x"] - enemy["patrol_range"]:
             enemy["direction"] = 1
 
 
@@ -145,24 +147,24 @@ def draw_goal(surface, goal, camera_x):
 
 def draw_spike(surface, tile, camera_x):
     draw_rect = tile.move(-camera_x, 0)
-    base_rect = pygame.Rect(draw_rect.x, draw_rect.bottom - 5, draw_rect.witdh, 5)
+    base_rect = pygame.Rect(draw_rect.x, draw_rect.bottom - 5, draw_rect.width, 5)
     pygame.draw.rect(surface, SPIKE_OUTLINE, base_rect)
 
     spike_count = 3
-    spike_w = draw_rect.widht / spike_count
+    spike_w = draw_rect.width / spike_count
     for i in range(spike_count):
         x0 = draw_rect.x + i * spike_w
         points = [
             (x0, draw_rect.bottom - 5),
-            (x0, spike_w / 2, draw_rect.top),
-            (x0, spike_w, draw_rect.bottom - 5),
+            (x0 + spike_w / 2, draw_rect.top),
+            (x0 + spike_w, draw_rect.bottom - 5),
         ]
         pygame.draw.polygon(surface, SPIKE_COLOR, points)
 
 def draw_enemy(surface, rect, camera_x):
     draw_rect = rect.move(-camera_x, 0)
     pygame.draw.ellipse(surface, ENEMY_COLOR, draw_rect)
-    pygame.draw.ellipse(surface, ENEMY_OUTLINEm, draw_rect, width=2)
+    pygame.draw.ellipse(surface, ENEMY_OUTLINE, draw_rect, width=2)
 
     eye_y = draw_rect.centery - 4
     for ex in (draw_rect.centerx - 6, draw_rect.centerx + 6):
@@ -292,7 +294,7 @@ while running:
             respawn_player(state)
         
         for hazard in state["hazard_tiles"]:
-            if state["player"].collideract(hazard):
+            if state["player"].colliderect(hazard):
                 respawn_player(state)
                 break
         
